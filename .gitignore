@@ -28,6 +28,9 @@ backend/.wrangler/
 backend/dist/
 node_modules/
 
+# Raw GTFS download (huge; only the compact public/gtfs bundle is committed)
+backend/gtfs_raw/
+
 # OS
 .DS_Store
 Thumbs.db

@@ -1,0 +1,19 @@
+name = "stigla-backend"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+routes = [
+  { pattern = "stigla-api.theoutlines.xyz", custom_domain = true }
+]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[[kv_namespaces]]
+binding = "STIGLA_KV"
+id = "9908db7cfc444d6692a66b2577b91288"
+
+[vars]
+API_VERSION = "v1"
