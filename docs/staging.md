@@ -13,6 +13,30 @@ Two independent web environments share one codebase and one repo.
 | Cron | daily | none |
 | Marker | — | amber **STAGING** badge on every screen |
 
+## Per-branch previews (private, one login for all)
+
+Every branch you deploy to Pages gets its **own** persistent URL and they all
+stay live at once — no switching:
+
+```sh
+# from app/, after building with the staging dart-defines:
+npx wrangler pages deploy build/web --project-name=stigla --branch=<branch-name>
+# → https://<branch-name>.stigla.pages.dev
+```
+
+So `feature-analytics.stigla.pages.dev` and `feature-<x>.stigla.pages.dev` can be
+open in two tabs simultaneously. `staging.stigla.pages.dev` is just the alias for
+the `staging` branch.
+
+**All `*.pages.dev` previews are password-gated** by `app/web/_worker.js` (a
+Pages advanced-mode worker). It only stores the **SHA-256** of the password —
+never the plaintext — and gates only preview hostnames, so **production
+(`stigla.theoutlines.xyz`) stays fully public**. The username + plaintext
+password live in the team password manager (Basic Auth prompt, auto-filled).
+
+To rotate the password: pick a new one, put its SHA-256 in
+`PREVIEW_PASS_SHA256` in `app/web/_worker.js`, and redeploy.
+
 ## Data isolation
 
 Staging is a fully separate worker (`wrangler [env.staging]`) bound to its **own**
