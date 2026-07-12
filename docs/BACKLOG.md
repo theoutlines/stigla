@@ -35,6 +35,12 @@ Stigla — **не навигатор** (не строит маршруты A→B
 
 - 🚧 Экраны аналитики линии (heatmap / спарклайн / точечное облако / плашки) —
   `analytics_show=OFF` на проде, ON на staging. Визуал черновой.
+- 🚧 Карта покрытия (V0, `feature/coverage-map`) — отдельная вкладка-инфографика:
+  светящиеся коридоры маршрутов, ширина/яркость от числа маршрутов на сегменте,
+  фильтр по типу ТС, легенда. Предвычисленный GeoJSON из GTFS shapes
+  (`scripts/build-coverage.mjs` → `public/gtfs/coverage.geojson`, раздаётся через
+  `GET /api/v1/coverage`). `coverage_map_show=OFF` на проде, ON на staging.
+  Спека: `docs/COVERAGE_MAP.md`, отчёт: `docs/reports/2026-07-12-coverage-map.md`.
 
 ## Следующее — Fleet-ID «на чём поедешь» (`feature/fleet-id`)
 
