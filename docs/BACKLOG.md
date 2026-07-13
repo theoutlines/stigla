@@ -76,6 +76,25 @@ Stigla — **не навигатор** (не строит маршруты A→B
   модуль слоя: `app/lib/core/coverage_heatmap.dart`. Флаг
   `coverage_on_main_map=OFF` на проде, ON на staging (независим от
   `coverage_map_show`). Отчёт: `docs/reports/2026-07-12-coverage-on-main-map.md`.
+- 🚧 **Символьный GPU-слой ТС (основной путь рендера)** — движущиеся объекты на
+  главной карте рисуются одним батч-слоем MapLibre (`SymbolLayer`+`CircleLayer`
+  по GeoJSON-источнику) на GPU: стоимость **сублинейна** по числу объектов
+  (40 или 400 символов ≈ одна цена), в отличие от линейной стоимости
+  виджет-маркеров (замеры донора: ~40 ТС → 19 fps). Слой спроектирован под
+  **типизированные движущиеся объекты** (`MovingObjectKind`: bus/tram/trolley +
+  зарезервированы metro/train/scooter/bike): иконка/цвет выбираются data-driven
+  выражениями по типу — новый тип = цвет + иконка, без переписывания слоя.
+  Fleet-ID на маркер не пробрасывается (идентичность — в шторке по тапу).
+  Позиции двигает **timed-математика A′** (донор `timed-trajectory`), пишется в
+  GeoJSON-источник (`updateGeoJsonSource`), карта интерполирует на GPU.
+  `symbol_layer=OFF` на проде, ON на staging; **старый виджетный путь остаётся
+  фолбэком за флагом** (удаляется после приёмки symbol-layer). Модуль:
+  `app/lib/core/moving_object_layer.dart`. Backend отдаёт план вперёд
+  (`trajectory`+`as_of`) за флагом `timed_trajectory` (тоже OFF prod / ON
+  staging). Отчёт: `docs/reports/2026-07-13-symbol-layer.md`.
+  - Цепочка доноров: `dead-reckoning` → `timed-trajectory` → **`symbol-layer`**.
+    `timed-trajectory` заморожена (в main не идёт): её вывод — виджет-рендер не
+    масштабируется; symbol-layer — принятое архитектурное решение взамен.
 
 ## Следующее — Fleet-ID: хвост (B6/B7)
 
