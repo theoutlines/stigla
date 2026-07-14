@@ -19,6 +19,15 @@ import type { Env } from "../env";
 //                       stop clusters). Independent of coverage_map_show: the
 //                       tab can be off while the overlay is on, and vice-versa.
 //                       OFF on prod, ON on staging.
+//   timed_trajectory  — the backend emits each vehicle's forward timing plan
+//                       (`trajectory`) and the app animates markers smoothly
+//                       forward along it by time, instead of easing to the last
+//                       fix and stopping. OFF on prod, ON on staging until ready.
+//   symbol_layer      — the app renders moving vehicles as a MapLibre GPU symbol
+//                       layer (batched, sub-linear in vehicle count) instead of
+//                       per-vehicle Flutter widgets. Client-side render flag,
+//                       independent of timed_trajectory (which is the data flag).
+//                       OFF on prod (widget path stays the fallback), ON staging.
 //   live_position_only — the app draws on the map only vehicles with a real live
 //                       GPS position. The upstream emits schedule-derived
 //                       placeholder rows (junk garage id `P1..P999`, GPS = the
@@ -32,16 +41,19 @@ import type { Env } from "../env";
 //                       canonical direction. Fixes markers drawn on the wrong
 //                       street ("through houses"). Read client-side; the backend
 //                       always sends the resolved route_id. OFF prod, ON staging.
-//   schedule_fallback — fills gaps with the GTFS timetable when live data is
-//                       thin (empty night/inter-peak stops). Phase 1: the stop
-//                       arrivals list gains planned departures (source:
-//                       "scheduled"), deduped against live. Gates backend
+//   schedule_fallback — hybrid live+schedule. Phase 1 (list): the stop arrivals
+//                       list gains planned departures (`source:"scheduled"`),
+//                       deduped against live. Map (this branch): schedule-
+//                       predicted vehicles drawn semi-transparently when live is
+//                       absent, moved by the same timed math. Gates backend
 //                       emission; the client reads the same flag. OFF prod.
 export const FEATURE_FLAGS = [
   "analytics_collect",
   "analytics_show",
   "coverage_map_show",
   "coverage_on_main_map",
+  "timed_trajectory",
+  "symbol_layer",
   "live_position_only",
   "vehicle_direction_shape",
   "schedule_fallback",
