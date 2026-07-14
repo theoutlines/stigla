@@ -36,7 +36,6 @@ candidate; **fresh** = recently shipped, kept for instant rollback.
 | `timed_trajectory` | vehicles animate forward along the backend timing plan (backend+client) | ON | ON | 2026-07-13 | rollout → removal candidate |
 | `symbol_layer` | moving vehicles render as a MapLibre GPU symbol layer (client) | ON | ON | 2026-07-13 | rollout → removal candidate |
 | `live_position_only` | map draws only vehicles with a real live GPS (client) | ON | ON | 2026-07-13 | rollout → removal candidate |
-| `vehicle_direction_shape` | stitch a vehicle to its actual-direction shape (backend+client) | ON | ON | 2026-07-14 | rollout → removal candidate |
 | `schedule_fallback` | schedule tail in the arrivals list; client renders scheduled rows (backend+client) | ON | ON | 2026-07-14 | rollout → removal candidate |
 | `schedule_map` | scheduled objects on the map where a line has no live vehicle (backend) | ON | ON | 2026-07-14 | rollout → removal candidate |
 
