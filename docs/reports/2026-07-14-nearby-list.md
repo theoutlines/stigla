@@ -87,7 +87,17 @@ FPS-overlay) не тронута.
 - [x] Экран работает за флагом, переиспользует position-стрим и лист прибытий.
 - [x] Галерея обновлена, тесты + analyze чисты.
 - [x] Отчёт + «Как проверить».
-- [ ] Merge в прод — по явной команде владельца.
+- [x] **Merge в прод + флаги `nearby_list` и `nearby_sort_board` = ON (2026-07-14).**
+
+## В проде (2026-07-14)
+Влито в `main` (fast-forward), тесты на слитом main зелёные (backend 102, client 176).
+Задеплоено: backend (`stigla-api.theoutlines.xyz`), web (`--branch=main`,
+sha кастомного домена = локальный билд). Прод-KV: `config:nearby_schedule_stops=5`,
+`flag:nearby_list=1`, `flag:nearby_sort_board=1`. Проверка: прод `/api/v1/config`
+→ `nearby_list:true`, `nearby_sort_board:true`; прод `/api/v1/arrivals/nearby` в
+центре → HTTP 200, 26 групп, 10 плановых строк (never-empty), 1 «→ None» (edge 41A).
+**Откат мгновенный:** `flag:nearby_list=0` в прод-KV скрывает «Рядом» без деплоя;
+`config:nearby_schedule_stops` тюнит расписание-кэп без пересборки.
 
 ## Известные ограничения / отложено
 - 1 строка из 26 «→ None» на плотнейшей точке (вариант `41A` без конечной в
