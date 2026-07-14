@@ -499,12 +499,32 @@ svg.icon { display: block; }
 .freshness { padding: 10px 16px 4px; font-size: 13px; color: var(--outline); }
 .freshness--stale { color: var(--error); }
 
-/* line filter chips */
+/* "no live-tracked vehicles to map" hint — replaces the mini-map when the
+   live_position_only flag has filtered every placeholder row off the map. */
+.no-live-hint {
+  margin: 12px 16px 0;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-container-highest) 50%, transparent);
+  color: var(--on-surface-variant);
+  font-size: 13px;
+}
+.no-live-hint__icon { display: flex; flex: none; }
+
+/* line filter chips — one horizontally-scrolling row (not a wrap), so a
+   many-line stop (e.g. Baćevac ~22) stays a tidy single row instead of a tall
+   block that shoves the arrivals list off screen. Mirrors the app (F7). */
 .line-filter {
-  display: flex; flex-wrap: wrap; gap: 8px;
+  display: flex; flex-wrap: nowrap; gap: 8px;
   padding: 4px 12px;
+  overflow-x: auto;
 }
 .line-chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
   padding: 6px 14px;
   border-radius: 8px;
   border: 1px solid var(--outline-variant);
