@@ -122,6 +122,24 @@ interfaces) → `presentation/` (Riverpod providers, go_router, screens/widgets)
 - **Riverpod**: use `AsyncValue.valueOrNull`, not `.value` — `.value` *rethrows*
   in an error state and will crash the widget instead of showing an offline/
   empty state.
+- **Map render bug on web? Read the browser console FIRST.** The map runs on
+  Flutter-CanvasKit, so the map/layers are **not** in the DOM and JS map-object
+  inspection is unreliable — but the browser console still catches real
+  exceptions (`JSON.parse`/`SyntaxError`, tile/style errors, etc.). A whole class
+  of "the layer exists but has no features / nothing renders" bugs shows up there
+  as a red error. (We once chased a "bus stops never render" bug through five
+  blind rounds; it was a `JSON.parse` error sitting red in the console the whole
+  time — see next gotcha.)
+- **Serialize GeoJSON for map sources with `dart:convert` `jsonEncode`, never
+  geobase's `FeatureCollection.toText()`.** `toText()` does **not** escape `"`
+  (and other specials) in string properties; ~19 Belgrade stops have a quote in
+  their name (`Park "Tašmajdan"`, `OŠ "Dragojlo Dudić"`, …), so `toText()` emits
+  invalid JSON and the maplibre-web plugin's `updateGeoJsonSource →
+  setData(JSON.parse(data))` throws, leaving that source empty. This also means a
+  **declarative** `MarkerLayer`/`PolylineLayer` (which the plugin serializes with
+  `toText()` internally) must not carry a quotable string property like a stop
+  `name` — keep only `stopId` and look the name up on tap. See
+  `home_map_screen._pushStopSources` + `test/stop_geojson_test.dart`.
 - **Tests and the map**: `MapLibreMap` throws `UnsupportedError` under
   `flutter test`; the `kMapRenderingEnabled` flag makes map widgets render
   placeholders. Widget tests that pump a screen with a map must set it false.
