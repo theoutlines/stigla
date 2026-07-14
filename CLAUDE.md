@@ -44,6 +44,27 @@ npx wrangler pages deploy build/web --project-name=stigla --branch=main         
 npx wrangler pages deploy build/web --project-name=stigla --branch=preview-<x>  # preview alias <x>.stigla.pages.dev
 ```
 
+### Deploying a **staging** preview (testing an in-development feature flag)
+A feature-flag build (`symbol_layer`, `timed_trajectory`, …) is only exercised
+against the **staging** worker, where in-development flags default ON. The flag
+values come from the backend `/api/v1/config`, so the bundle **must point at the
+staging backend** — otherwise it silently hits prod (default `apiBaseUrl` in
+`core/api_config.dart`), where those flags are OFF, and you get the *pre-flag*
+render with no error. So a staging preview build MUST bake in both defines:
+```sh
+# from app/
+flutter build web --release --dart-define-from-file=dart_defines.json \
+  --dart-define=API_BASE_URL=https://stigla-api-staging.theoutlines.xyz \
+  --dart-define=ENVIRONMENT=staging
+npx wrangler pages deploy build/web --project-name=stigla --branch=preview-<x>
+# verify the bundle baked the staging backend, not prod:
+grep -o 'stigla-api[a-z-]*\.theoutlines\.xyz' build/web/main.dart.js | sort -u
+```
+`ENVIRONMENT=staging` also shows a visible **STAGING** badge in-app — its
+presence is the quick eyeball check that the preview is on the staging backend
+(preview URLs sit behind Cloudflare Access, so a curl+sha check just returns
+"Authentication required"; use the badge instead).
+
 ## Architecture
 
 ### Backend — a proxy/cache/normalization layer
@@ -122,6 +143,30 @@ interfaces) → `presentation/` (Riverpod providers, go_router, screens/widgets)
 - **Riverpod**: use `AsyncValue.valueOrNull`, not `.value` — `.value` *rethrows*
   in an error state and will crash the widget instead of showing an offline/
   empty state.
+- **Map render bug on web? Two observation channels — use both, console FIRST.**
+  The map runs on Flutter-CanvasKit, so the map/layers are **not** in the DOM and
+  JS map-object inspection is unreliable/blind. Instead: (1) the **browser
+  console** still catches real exceptions (`JSON.parse`/`SyntaxError`, tile/style
+  errors, etc.) — a whole class of "the layer exists but has no features /
+  nothing renders" bugs sits there as a red error; (2) the **staging-only stop
+  diagnostics overlay** (`home_map_screen._stopDiagnosticsOverlay`, gated on
+  `isStaging`, invisible in prod) prints the render pipeline from inside the app —
+  gate flags, viewport fetch, marker counts, which stop layers are on the map,
+  and whether each type actually draws at a stop's pixel. It reads state Flutter
+  won't expose to JS. (We once chased a "bus stops never render" bug through five
+  blind rounds; the panel showed "layer present, markers built, screen empty" and
+  the console had the real `JSON.parse` error red the whole time — see next
+  gotcha.)
+- **Serialize GeoJSON for map sources with `dart:convert` `jsonEncode`, never
+  geobase's `FeatureCollection.toText()`.** `toText()` does **not** escape `"`
+  (and other specials) in string properties; ~19 Belgrade stops have a quote in
+  their name (`Park "Tašmajdan"`, `OŠ "Dragojlo Dudić"`, …), so `toText()` emits
+  invalid JSON and the maplibre-web plugin's `updateGeoJsonSource →
+  setData(JSON.parse(data))` throws, leaving that source empty. This also means a
+  **declarative** `MarkerLayer`/`PolylineLayer` (which the plugin serializes with
+  `toText()` internally) must not carry a quotable string property like a stop
+  `name` — keep only `stopId` and look the name up on tap. See
+  `home_map_screen._pushStopSources` + `test/stop_geojson_test.dart`.
 - **Tests and the map**: `MapLibreMap` throws `UnsupportedError` under
   `flutter test`; the `kMapRenderingEnabled` flag makes map widgets render
   placeholders. Widget tests that pump a screen with a map must set it false.
