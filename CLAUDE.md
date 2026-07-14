@@ -122,14 +122,20 @@ interfaces) → `presentation/` (Riverpod providers, go_router, screens/widgets)
 - **Riverpod**: use `AsyncValue.valueOrNull`, not `.value` — `.value` *rethrows*
   in an error state and will crash the widget instead of showing an offline/
   empty state.
-- **Map render bug on web? Read the browser console FIRST.** The map runs on
-  Flutter-CanvasKit, so the map/layers are **not** in the DOM and JS map-object
-  inspection is unreliable — but the browser console still catches real
-  exceptions (`JSON.parse`/`SyntaxError`, tile/style errors, etc.). A whole class
-  of "the layer exists but has no features / nothing renders" bugs shows up there
-  as a red error. (We once chased a "bus stops never render" bug through five
-  blind rounds; it was a `JSON.parse` error sitting red in the console the whole
-  time — see next gotcha.)
+- **Map render bug on web? Two observation channels — use both, console FIRST.**
+  The map runs on Flutter-CanvasKit, so the map/layers are **not** in the DOM and
+  JS map-object inspection is unreliable/blind. Instead: (1) the **browser
+  console** still catches real exceptions (`JSON.parse`/`SyntaxError`, tile/style
+  errors, etc.) — a whole class of "the layer exists but has no features /
+  nothing renders" bugs sits there as a red error; (2) the **staging-only stop
+  diagnostics overlay** (`home_map_screen._stopDiagnosticsOverlay`, gated on
+  `isStaging`, invisible in prod) prints the render pipeline from inside the app —
+  gate flags, viewport fetch, marker counts, which stop layers are on the map,
+  and whether each type actually draws at a stop's pixel. It reads state Flutter
+  won't expose to JS. (We once chased a "bus stops never render" bug through five
+  blind rounds; the panel showed "layer present, markers built, screen empty" and
+  the console had the real `JSON.parse` error red the whole time — see next
+  gotcha.)
 - **Serialize GeoJSON for map sources with `dart:convert` `jsonEncode`, never
   geobase's `FeatureCollection.toText()`.** `toText()` does **not** escape `"`
   (and other specials) in string properties; ~19 Belgrade stops have a quote in
