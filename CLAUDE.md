@@ -45,8 +45,9 @@ npx wrangler pages deploy build/web --project-name=stigla --branch=preview-<x>  
 ```
 
 ### Deploying a **staging** preview (testing an in-development feature flag)
-A feature-flag build (`symbol_layer`, `timed_trajectory`, …) is only exercised
-against the **staging** worker, where in-development flags default ON. The flag
+A feature-flag build (e.g. `coverage_map_show`, `analytics_show`, …; the live
+registry is `docs/feature-flags.md`) is only exercised against the **staging**
+worker, where in-development flags default ON. The flag
 values come from the backend `/api/v1/config`, so the bundle **must point at the
 staging backend** — otherwise it silently hits prod (default `apiBaseUrl` in
 `core/api_config.dart`), where those flags are OFF, and you get the *pre-flag*
