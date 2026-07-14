@@ -33,7 +33,6 @@ candidate; **fresh** = recently shipped, kept for instant rollback.
 | `coverage_on_main_map` | coverage heatmap overlay on the main map when zoomed out (client) | OFF | ON | 2026-07-12 | permanent (experiment, dormant) |
 | `nearby_list` | the "Nearby" draggable sheet over the map (client) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
 | `nearby_sort_board` | "Nearby" ordered by time-to-board instead of bare ETA (backend) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
-| `symbol_layer` | moving vehicles render as a MapLibre GPU symbol layer (client) | ON | ON | 2026-07-13 | rollout → removal candidate |
 
 Config parameters (KV, not boolean flags):
 
