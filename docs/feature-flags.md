@@ -13,24 +13,52 @@ as the kill switch (`backend/src/lib/killswitch.ts`). A flag is one KV key
 (`flag:<name>`, value `"1"`/`"0"`). Flipping it is a single write; each worker
 isolate reads the new value on its next request. **No rebuild, no redeploy.**
 
-Defined in `backend/src/lib/featureFlags.ts`:
-
-| flag | effect | default (prod / staging) |
-|---|---|---|
-| `analytics_collect` | the worker logs arrival observations to build history | off / on |
-| `analytics_show` | the app reveals the (draft) analytics screens | off / on |
-| `nearby_list` | the app shows the experimental "Nearby" list (a draggable sheet over the map) | off / on |
-| `nearby_sort_board` | the "Nearby" list is ordered by **time-to-board** (walk to the stop + wait for the soonest catchable departure) instead of bare ETA | off / on |
-
 In-development flags default **off on production** and **on on staging** (keyed on
 `ENVIRONMENT`, see `defaultFor` in `featureFlags.ts`); an explicit KV value always
 overrides the default.
 
-The two analytics flags are independent on purpose: turn **collect** on early to
-accumulate history while **show** stays off, then flip **show** once the screens
-are ready. `nearby_sort_board` only matters when `nearby_list` is on — it swaps
-the list's sort order (see `backend/src/lib/nearbyArrivals.ts`,
-`timeToBoardMinutes`).
+## Registry — the single source of truth (keep this current)
+
+Every flag in `backend/src/lib/featureFlags.ts` **must** have a row here. State as
+of **2026-07-14** (verified against prod/staging KV — see
+`docs/reports/2026-07-14-flags-audit.md`). Status: **permanent** = lives behind a
+flag by design; **rollout** = shipped & stable, flag now redundant → removal
+candidate; **fresh** = recently shipped, kept for instant rollback.
+
+| flag | gates (feature / screen) | prod | staging | introduced | status |
+|---|---|---|---|---|---|
+| `analytics_collect` | worker logs arrival observations to build history (backend) | ON | ON | 2026-07-10 | permanent (control) |
+| `analytics_show` | reveals the (draft) analytics screens (client) | OFF | ON | 2026-07-10 | permanent (draft UI) |
+| `coverage_map_show` | coverage-map tab, static heatmap infographic (client) | OFF | ON | 2026-07-12 | permanent (experiment, dormant) |
+| `coverage_on_main_map` | coverage heatmap overlay on the main map when zoomed out (client) | OFF | ON | 2026-07-12 | permanent (experiment, dormant) |
+| `nearby_list` | the "Nearby" draggable sheet over the map (client) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
+| `nearby_sort_board` | "Nearby" ordered by time-to-board instead of bare ETA (backend) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
+| `timed_trajectory` | vehicles animate forward along the backend timing plan (backend+client) | ON | ON | 2026-07-13 | rollout → removal candidate |
+| `symbol_layer` | moving vehicles render as a MapLibre GPU symbol layer (client) | ON | ON | 2026-07-13 | rollout → removal candidate |
+| `live_position_only` | map draws only vehicles with a real live GPS (client) | ON | ON | 2026-07-13 | rollout → removal candidate |
+| `vehicle_direction_shape` | stitch a vehicle to its actual-direction shape (backend+client) | ON | ON | 2026-07-14 | rollout → removal candidate |
+| `schedule_fallback` | schedule tail in the arrivals list; client renders scheduled rows (backend+client) | ON | ON | 2026-07-14 | rollout → removal candidate |
+| `schedule_map` | scheduled objects on the map where a line has no live vehicle (backend) | ON | ON | 2026-07-14 | rollout → removal candidate |
+
+Config parameters (KV, not boolean flags):
+
+| key | controls | prod | staging | default |
+|---|---|---|---|---|
+| `config:nearby_schedule_stops` | how many nearest "Nearby" stops inherit the schedule fallback (CPU cap) | 5 | 5 (default) | 5 (clamp 0..8) |
+
+Notes: the two analytics flags are independent on purpose — turn **collect** on
+early to accumulate history while **show** stays off. `nearby_sort_board` only
+matters when `nearby_list` is on. `schedule_map` needs `schedule_fallback` too for
+scheduled buses to appear on the map.
+
+### Registry maintenance (part of task DoD — see CLAUDE.md)
+
+- **New flag** → add it to `featureFlags.ts` **and** a row here (gates / prod /
+  staging / date / status) in the same task.
+- **Feature stabilised, flag no longer needed** → when you remove the flag from
+  code, remove its row here too (and delete the KV keys).
+- Keep the state column honest: it should match prod/staging KV. Re-verify during
+  any flag audit.
 
 ## Endpoints
 
