@@ -30,7 +30,7 @@ candidate; **fresh** = recently shipped, kept for instant rollback.
 | `analytics_collect` | worker logs arrival observations to build history (backend) | ON | ON | 2026-07-10 | permanent (control) |
 | `analytics_show` | reveals the (draft) analytics screens (client) | OFF | ON | 2026-07-10 | permanent (draft UI) |
 | `coverage_map_show` | coverage-map tab, static heatmap infographic (client) | OFF | ON | 2026-07-12 | permanent (experiment, dormant) |
-| `coverage_on_main_map` | coverage heatmap overlay on the main map when zoomed out (client) | OFF | ON | 2026-07-12 | permanent (experiment, dormant) |
+| `coverage_on_main_map` | coverage heatmap overlay on the main map when zoomed out (client) | ON | ON | 2026-07-12 | experiment, enabled in prod 2026-07-14 |
 | `nearby_list` | the "Nearby" draggable sheet over the map (client) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
 | `nearby_sort_board` | "Nearby" ordered by time-to-board instead of bare ETA (backend) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
 

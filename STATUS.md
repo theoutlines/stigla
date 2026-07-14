@@ -35,13 +35,20 @@
   `direction_route_id`, сортировка по времени-до-посадки. Расписание для
   ближайших N остановок (KV `config:nearby_schedule_stops`=5).
 
-### Флаги в проде (снимок `/api/v1/config`)
-| ON | OFF |
-|---|---|
-| symbol_layer, timed_trajectory, live_position_only, vehicle_direction_shape, schedule_fallback, schedule_map, nearby_list, nearby_sort_board, analytics_collect | analytics_show, coverage_map_show, coverage_on_main_map |
+### Флаги (снимок `/api/v1/config`, 2026-07-14)
+6 core-фич **впаяны** (флаг + фолбэк удалены 2026-07-14, `docs/reports/2026-07-14-flags-inline.md`):
+symbol_layer, timed_trajectory, live_position_only, vehicle_direction_shape,
+schedule_fallback, schedule_map — теперь это дефолтное поведение, не за флагом
+(откат — через git-историю). Осталось **6 флагов**:
 
-Все флаги — KV, меняются `--remote` без деплоя (мгновенный откат). Runtime-тюнинг
-«Рядом»: `config:nearby_schedule_stops` (clamp 0..8).
+| ON (прод) | OFF (прод) |
+|---|---|
+| analytics_collect, nearby_list, nearby_sort_board, coverage_on_main_map | analytics_show, coverage_map_show |
+
+Реестр — `docs/feature-flags.md` (single source of truth). Флаги — KV, меняются
+`--remote` без деплоя (мгновенный откат). Runtime-тюнинг «Рядом»:
+`config:nearby_schedule_stops` (clamp 0..8). `coverage_on_main_map` включён в
+проде 2026-07-14 (heatmap покрытия на осн. карте при зум-ауте).
 
 ## Ветки и worktrees
 Только **`main`** (= `origin/main`). Все feature-ветки и worktree'ы прибраны:

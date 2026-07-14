@@ -114,13 +114,14 @@ Stigla — **не навигатор** (не строит маршруты A→B
   схлопнутый счётчик коридоров (`coverage-weighted.geojson`) — задел под будущие
   веса, вне рендера. `coverage_map_show=OFF` на проде, ON на staging.
   Спека: `docs/COVERAGE_MAP.md`, отчёт: `docs/reports/2026-07-12-coverage-map.md`.
-- 🚧 Покрытие на основной карте — при зум-ауте кластеры остановок плавно
-  сменяются heatmap-свечением покрытия (тот же слой, что на вкладке Coverage,
-  но скромнее по intensity/opacity); зум-ин — обратно. Порог по зуму с
-  гистерезисом + crossfade, lazy-load GeoJSON, живые ТС всегда поверх. Общий
-  модуль слоя: `app/lib/core/coverage_heatmap.dart`. Флаг
-  `coverage_on_main_map=OFF` на проде, ON на staging (независим от
-  `coverage_map_show`). Отчёт: `docs/reports/2026-07-12-coverage-on-main-map.md`.
+- ✅ **Покрытие на основной карте — В ПРОДЕ, флаг `coverage_on_main_map` ON**
+  (включён 2026-07-14). При зум-ауте кластеры остановок плавно сменяются
+  heatmap-свечением покрытия (тот же слой, что на вкладке Coverage, но скромнее
+  по intensity/opacity); зум-ин — обратно. Порог по зуму с гистерезисом +
+  crossfade, lazy-load GeoJSON, живые ТС всегда поверх. Общий модуль слоя:
+  `app/lib/core/coverage_heatmap.dart`. Независим от `coverage_map_show` (вкладка
+  Coverage — по-прежнему OFF на проде). Откат: `coverage_on_main_map=0`. Отчёт:
+  `docs/reports/2026-07-12-coverage-on-main-map.md`.
 - ✅ **Символьный GPU-слой ТС (основной путь рендера)** — **в проде с 2026-07-14**
   (`feature/symbol-layer` слит в main; `symbol_layer`+`timed_trajectory`=ON на
   проде и staging). Движущиеся объекты на
