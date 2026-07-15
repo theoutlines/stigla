@@ -38,6 +38,13 @@ that can't be collected retroactively, we start accumulating before we need it.
 
 ## In progress / behind a flag
 
+- 🛠️ **Analytics insert hardening** (`fix/analytics-sql-variables`, ждёт merge) —
+  размер чанка вставки в analytics-D1 выводится из числа колонок под
+  документированный лимит D1 (100 bind-параметров), одной утилитой для всех путей
+  (наблюдения + агрегаты). Проверка прода: **тихой потери данных не было**
+  (binding-лимит выше REST-лимита, чанк 40 фактически держал). Отчёт:
+  `docs/reports/2026-07-15-analytics-sql-variables.md`.
+
 - 🚧 **Line analytics screens** (heatmap / sparkline / scatter / stat tiles) —
   hidden on production, visible on staging; draft visuals.
 - 🚧 **Coverage tab (V0)** — a standalone Strava-style route-density infographic
