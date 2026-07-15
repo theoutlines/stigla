@@ -42,6 +42,15 @@ that can't be collected retroactively, we start accumulating before we need it.
   hidden on production, visible on staging; draft visuals.
 - 🚧 **Coverage tab (V0)** — a standalone Strava-style route-density infographic
   (filter by vehicle type, gradient legend), hidden on production for now.
+- 🚧 **Vehicles on demand** (`vehicles_on_demand`) — the main map drops the
+  background "aquarium" and shows vehicles only *in context*: the markers of a
+  tapped stop's arrivals, and a *followed* vehicle (camera tracks it, breaks on a
+  manual gesture). Both fed from the already-loaded per-stop arrivals — no second
+  fan-out — so the map fan-out load (× every open client × 30s) is dropped outside
+  a context. Hidden on production, on on staging. Ships alongside a **flag-free
+  bugfix**: opening a vehicle from the arrivals list now guarantees its marker and
+  follows it (was: camera moved but the marker came, or didn't, from an
+  independent viewport fan-out).
 
 ## Next
 

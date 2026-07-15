@@ -32,6 +32,7 @@ instant rollback.
 | `coverage_on_main_map` | coverage heatmap overlay on the main map when zoomed out (client) | ON | ON | 2026-07-12 | experiment, enabled in prod 2026-07-14 |
 | `nearby_list` | the "Nearby" draggable sheet over the map (client) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
 | `nearby_sort_board` | "Nearby" ordered by time-to-board instead of bare ETA (backend) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
+| `vehicles_on_demand` | main map shows vehicles only in context (tapped stop's arrivals + followed vehicle) instead of the background "aquarium" (client) | OFF | ON | 2026-07-15 | experiment |
 
 Config parameters (KV, not boolean flags):
 
