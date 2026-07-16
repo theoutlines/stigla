@@ -111,6 +111,14 @@ that can't be collected retroactively, we start accumulating before we need it.
   1, cold worst-case ~70 → ~53). Still over on a fully cold isolate; the larger,
   architectural levers (fan-out reduction, upstream cache policy) are deferred.
   Full decomposition in the report above.
+- ⏭️ **Unify the two stop-shutter render paths** — `stop_sheet.dart` (in-app tap,
+  primary) and `stop_screen.dart` (`/stop/:id` deep link) each carry their own
+  copy of the arrivals-list build (freshness, line filter, comfort sort, grouped
+  entries). The duplication already misfired in `arrivals-dedup` (the dedup
+  landed in `stop_screen` first and did nothing in the app until wired into
+  `stop_sheet` too). Extract one shared arrivals-list widget both consume, so a
+  future list change can't ship a half-fix. Client-only refactor, no behaviour
+  change; lock it with the existing widget tests.
 
 ### Fleet-ID tail
 - ⏭️ Close remaining roster gaps so fewer vehicles show as UNKNOWN.
