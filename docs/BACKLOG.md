@@ -125,6 +125,15 @@ that can't be collected retroactively, we start accumulating before we need it.
   to ride" on the line card.
 - 💡 **Punctuality vs the GTFS schedule** — needs trip matching; unblocks the
   reliability metrics above.
+- 💡 **Expected-конверсия (диагностика).** По аналитике (наблюдения с
+  2026-07-10) посчитать, какая доля placeholder-прогнозов (гараж `P1..P999`)
+  конвертируется в реальный live-борт, в разрезе диапазонов ETA (0–5 / 5–15 /
+  15+ мин) и времени суток (день/ночь). Цель: данными подтвердить или
+  опровергнуть доверие к статусу **Expected** при малых ETA; если конверсия при
+  ETA < N мин близка к нулю — обосновать правило скрытия. Кандидат на первый
+  кейс reliability-pillar (показ надёжности прогноза пользователю). Чисто
+  аналитическая задача, продукт не трогает. Контекст: вопрос владельца
+  2026-07-17 «7 минут Expected — выглядит так, будто уже не приедет».
 - 💡 **Dropped-trips metric** — computable from current data.
 - 💡 **Coverage V2** — weight segments by time-of-day/day-of-week aggregates,
   with a "how it usually is at this hour" slider (after enough history).
