@@ -32,7 +32,7 @@ instant rollback.
 | `coverage_on_main_map` | coverage heatmap overlay on the main map when zoomed out (client) | ON | ON | 2026-07-12 | experiment, enabled in prod 2026-07-14 |
 | `nearby_list` | the "Nearby" draggable sheet over the map (client) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
 | `nearby_sort_board` | "Nearby" ordered by time-to-board instead of bare ETA (backend) | ON | ON | 2026-07-12 | fresh (kept for rollback) |
-| `vehicles_on_demand` | the "Transport on the map" setting — the user's choice between on-demand vehicles (in context only) and the background "aquarium" (client) | OFF | ON | 2026-07-15 | permanent (setting gate + killswitch) — two-level, see below |
+| `vehicles_on_demand` | the map's vehicle-mode toggle — the user's choice between on-demand vehicles (in context only) and the background "aquarium" (client) | OFF | ON | 2026-07-15 | permanent (toggle gate + killswitch) — two-level, see below |
 
 Config parameters (KV, not boolean flags):
 
@@ -48,20 +48,22 @@ matters when `nearby_list` is on.
 
 Unlike the rollout flags above, this one doesn't retire once the feature is
 stable: on-demand is the **new default**, and the aquarium stays as a user
-option, so the flag permanently gates the setting that offers the choice. It is
-**not** the mode itself — the mode is resolved in `app/lib/core/vehicle_map_mode.dart`:
+option, so the flag permanently gates the **map's vehicle-mode toggle** that
+offers the choice. (There is deliberately **no Settings item** — the toggle on
+the map is the single control.) The flag is **not** the mode itself; the mode is
+resolved in `app/lib/core/vehicle_map_mode.dart`:
 
 | flag | user's stored choice | map mode |
 |---|---|---|
-| **OFF** | anything (or none) | **aquarium** — and the setting is hidden |
+| **OFF** | anything (or none) | **aquarium** — and the toggle is hidden |
 | ON | none (default) | on-demand |
 | ON | "All transport" | aquarium |
 | ON | "On demand" | on-demand |
 
-So **OFF is the killswitch**: one KV write hides the setting and returns every
+So **OFF is the killswitch**: one KV write hides the toggle and returns every
 client to today's production behaviour, no matter what any user has stored. **ON**
-reveals the setting in Settings → *Transport on the map*, defaulting to
-*On demand*; the user's pick wins over the default and applies on the fly (no
+shows the toggle on the map, defaulting to *On demand*; the user's pick wins over
+the default, persists locally across restarts, and applies on the fly (no
 restart). Turning the flag ON is also what drops the main load on the worker —
 the aquarium's `/vehicles/nearby` fan-out becomes opt-in.
 
