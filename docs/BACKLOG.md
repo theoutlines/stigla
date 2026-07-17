@@ -114,6 +114,19 @@ that can't be collected retroactively, we start accumulating before we need it.
   are night lines that simply don't run at night). A month+ of data makes
   night/rare lines distinguishable from retired ones; build the classifier then.
 
+### Known cosmetics (not blockers)
+- 🧊 **Полупрозрачный «призрак»-метка рядом со стоящим бортом (follow).** Условия
+  наблюдения (владелец, R5): on-demand, follow за **7L P80236** из контекста
+  остановки **20094**, борт на паузе — рядом появляется полупрозрачная метка того
+  же вида. Редкий, полупрозрачный. Кодовый поиск (R5) исключил: дубль-трек
+  (в on-demand garageNo уникален), твин-из-аквариума (аквариум off), двойной путь
+  рендера (векторный symbol-слой — единственный на главной карте; `VehicleMarker`
+  живёт только в `live_vehicles_map`), несглаженный stale (source
+  перезаписывается целиком). На главной карте пайплайн даёт один трек → одну фичу.
+  Остаётся редкий рендер-артефакт (кандидаты: остаточный spiderfy-offset при
+  переходе dwell↔move; grace-fade у самого борта на кадре ре-анкора). Нужна живая
+  репродукция с инспекцией слоя. Не блокирует merge ветки stop-dwell.
+
 ### Plumbing / reliability
 - ⏭️ **GTFS shape не покрывает центральный участок линий 26/27/44 (и, вероятно,
   др.) — ломает отрисовку трека, не только паузы.** Замер на живых бортах
