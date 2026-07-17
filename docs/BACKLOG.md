@@ -115,6 +115,16 @@ that can't be collected retroactively, we start accumulating before we need it.
   night/rare lines distinguishable from retired ones; build the classifier then.
 
 ### Plumbing / reliability
+- ⏭️ **Единый шлюз к источнику (egress discipline, полный слой)** — свести весь
+  upstream-трафик всех окружений (прод + все изолированные staging-версии) в один
+  код с **одним глобальным рейт-лимитом**, single-flight и коротким общим кешем,
+  чтобы N стендов стоили источнику как ~1 поллер (сейчас каждый изолят поллит
+  независимо, 30с-кап держится только внутри изолята). Мотив: источник, похоже,
+  ведёт поведенческую TTL-классификацию — 2026-07-17 он на часы отдавал нашему
+  Cloudflare-egress HTML вместо JSON, потом сам отпустил; тише = меньше риск
+  повтора. Слои-предшественники: правило диагностики в CLAUDE.md (готово),
+  провайдерский потолок частоты (в ближайшей бэкенд-задаче). Полный план и
+  дисциплина трафика: `docs/reports/2026-07-17-upstream-egress-outage.md`.
 - ✅ **Scheduled map objects TypeError** (влито в `main` 2026-07-16) —
   `scheduledMapObjectsForRoute` threw on the edge input
   `now.minutes === last stop time`, and one bad route dropped the *whole*
