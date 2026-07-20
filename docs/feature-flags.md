@@ -47,6 +47,7 @@ Config parameters (KV, not boolean flags):
 | `config:jam_t_substitute` | relaxed freeze seconds when a substitute bus corroborates the line (halves the cluster threshold) | 90 | 90 | 90 (clamp 30..1800) |
 | `config:jam_t_single` | freeze seconds for a lone vehicle (anchor only — a single vehicle is never surfaced as a jam) | 300 | 300 | 300 (clamp 60..1800) |
 | `config:jam_cluster_min` | minimum vehicles for a jam cluster — **keep at 2** (3 would miss real jams on short/sparse lines) | 2 | 2 | 2 (clamp 2..5) |
+| `config:jam_downstream_horizon_s` | how far past the jam's front the delay banner reaches, in **seconds of travel** (converted to a stop count via the line's mean segment time) — not a fixed stop count | 600 | 600 | 600 (clamp 120..3600) |
 
 Notes: the two analytics flags are independent on purpose — turn **collect** on
 early to accumulate history while **show** stays off. `nearby_sort_board` only
