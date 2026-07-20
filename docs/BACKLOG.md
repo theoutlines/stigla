@@ -71,9 +71,20 @@ that can't be collected retroactively, we start accumulating before we need it.
   bus-on-a-tram-line **substitution** notice (garage-no classifier, cross-checked
   against route alerts for tone). Flag `jam_detection_show` (OFF prod / ON
   staging) = killswitch. Staging **`jam:sim`** KV / `?sim=<line>` injects a
-  synthetic jam to verify without a live one. Report
-  `docs/reports/2026-07-20-jam-detection.md`. Follow-ups: recalibrate T_jam on the
-  first real captured jam; watch D1 write volume before any prod enable.
+  synthetic jam to verify without a live one. Round-2 (owner-accepted): amber
+  pulsing segment + affected-stop glow (thinner than the route, under the pins,
+  cheap opacity pulse only while a jam is shown), off-shape lines get glow-only;
+  jam-mode map toggle (fit to all jams) with a red count badge that lights up ONLY
+  for context-relevant jams (near you / followed line / open stop) and stays quiet
+  otherwise; Nearby jam row + follow-ahead warning (direction + along-track "ahead"
+  gated); cascading KV thresholds (`config:jam_t_*`, `config:jam_downstream_horizon_s`
+  = downstream banner reach by travel time, not a fixed count). Design doc:
+  `docs/JAM_DETECTION.md`. Report `docs/reports/2026-07-20-jam-detection.md`.
+  **Merge order:** citywide-analytics (migration 0006) merges FIRST, this branch
+  second — resolve the `docs/feature-flags.md` overlap at that point. Follow-ups:
+  recalibrate the (preliminary) thresholds on the first real captured jam; watch D1
+  write volume before any prod enable; schedule-deviation (7a) + headway-CV (7d)
+  handed to the citywide branch.
 
 - 🚧 **Adaptive context panel** (`feature/context-panel`, isolated preview pair,
   merge owner-gated) — the nearby / stop / vehicle bottom sheets become one
