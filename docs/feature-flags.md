@@ -35,12 +35,14 @@ instant rollback.
 | `vehicles_on_demand` | the map's vehicle-mode toggle — the user's choice between on-demand vehicles (in context only) and the background "aquarium" (client) | OFF | ON | 2026-07-15 | permanent (toggle gate + killswitch) — two-level, see below |
 | `product_analytics` | anonymous product-usage events: client batches them to `POST /api/v1/events`, worker writes to `product_events` (client + backend) | ON | ON | 2026-07-18 | permanent (gate + killswitch) — enabled in prod 2026-07-19 (after `hour_bucket` privacy fix; volumes to be read from live prod) |
 | `context_panel` | adaptive "context slot": persistent left panel on desktop (≥840px) + unified bottom sheets on mobile, one nearby→stop→vehicle state machine (client) | ON | ON | 2026-07-18 | fresh, enabled in prod 2026-07-19 (killswitch = today's independent sheets) |
+| `jam_detection_show` | tram-jam ("stalled segment") detection: worker keeps a last-fix table + serves `/api/v1/jams`; client draws the red stalled segment, downstream-stop delay banners, bus-substitution notice (client + backend) | OFF | ON | 2026-07-20 | in-dev (gate + killswitch) — OFF is the killswitch (worker records nothing, `/jams` inert, client never calls it) |
 
 Config parameters (KV, not boolean flags):
 
 | key | controls | prod | staging | default |
 |---|---|---|---|---|
 | `config:nearby_schedule_stops` | how many nearest "Nearby" stops inherit the schedule fallback (CPU cap) | 5 | 5 (default) | 5 (clamp 0..8) |
+| `jam:sim` | **staging only** — force a synthetic tram jam on the given line number so a stand shows the red segment + banner without a live jam (also as `?sim=<line>`). Ignored in prod. | (unset) | set to a tram line to demo | unset |
 
 Notes: the two analytics flags are independent on purpose — turn **collect** on
 early to accumulate history while **show** stays off. `nearby_sort_board` only
