@@ -1,6 +1,6 @@
 # Feature flags & releasing dormant features
 
-Stigla ships large features into `main` **before they're finished**, kept
+Stiže ships large features into `main` **before they're finished**, kept
 dormant behind a remote flag, so ordinary releases keep flowing while the
 feature matures. This is essential for analytics, where data collection must
 start early (charts are worthless without accumulated history) but the screens
@@ -125,12 +125,12 @@ the aquarium's `/vehicles/nearby` fan-out becomes opt-in.
 
   ```sh
   # turn data collection ON (do this early)
-  curl -X POST https://stigla-api.theoutlines.xyz/api/v1/admin/flags \
+  curl -X POST https://api.stize.app/api/v1/admin/flags \
     -H "X-Admin-Token: $ADMIN_TOKEN" \
     -d '{"flag":"analytics_collect","value":true}'
 
   # reveal the screens LATER, when ready
-  curl -X POST https://stigla-api.theoutlines.xyz/api/v1/admin/flags \
+  curl -X POST https://api.stize.app/api/v1/admin/flags \
     -H "X-Admin-Token: $ADMIN_TOKEN" \
     -d '{"flag":"analytics_show","value":true}'
   ```

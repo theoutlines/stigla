@@ -1,11 +1,11 @@
-# Stigla — Roadmap
+# Stiže — Roadmap
 
 Where the product is and where it's going. Status: ✅ shipped · 🚧 in progress /
 behind a flag · ⏭️ next · 💡 idea · 🧊 icebox.
 
 ## Product frame
 
-Stigla is **not a journey planner** (no A→B routing). It answers the two
+Stiže is **not a journey planner** (no A→B routing). It answers the two
 questions a rider at a stop has: **what's coming and when**, and **which vehicle
 am I about to board — and can I trust it?** Three pillars: **arrivals /
 vehicles / reliability**. Priority ≈ how much a factor weighs in a rider's

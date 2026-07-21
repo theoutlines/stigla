@@ -1,6 +1,6 @@
 # Citywide sweep & analytics v2 — design
 
-How Stigla builds a **citywide** history of how Belgrade's transit actually runs —
+How Stiže builds a **citywide** history of how Belgrade's transit actually runs —
 reliability, typical headways, "how it usually is at this hour", punctuality vs
 the timetable — while touching the live data source only **gently**, as a slow
 background trickle that always yields to real user traffic.
@@ -12,7 +12,7 @@ signals it uses, and why each decision was made.
 
 ## 1. The problem: demand-driven history is biased
 
-Stigla logs what it already fetches to serve you. When you open a stop, the live
+Stiže logs what it already fetches to serve you. When you open a stop, the live
 board it shows is also recorded as observations (line, vehicle, how far away,
 when). That was enough to prototype the analytics screens, but it has a built-in
 bias: **history only exists for the stops people actually open.**

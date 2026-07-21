@@ -4,14 +4,24 @@ Two independent web environments share one codebase and one repo.
 
 | | Production | Staging |
 |---|---|---|
-| Web | `stigla.theoutlines.xyz` | `staging.stigla.pages.dev` (link only) |
-| API (worker) | `stigla-api.theoutlines.xyz` | `stigla-api-staging.theoutlines.xyz` |
+| Web | `stize.app` | `staging.stigla.pages.dev` (link only) |
+| API (worker) | `api.stize.app` | `stigla-api-staging.theoutlines.xyz` |
 | Worker | `stigla-backend` | `stigla-backend-staging` (`[env.staging]`) |
 | KV / D1 | prod namespaces | **separate** staging KV + `stigla-{ideas,analytics}-staging` D1 |
 | `ENVIRONMENT` | `production` | `staging` |
 | In-dev feature flags | default **OFF** | default **ON** |
 | Cron | daily | none |
 | Marker | — | amber **STAGING** badge on every screen |
+
+> **Naming.** The product is **Stiže** (ASCII `stize`) and prod lives on
+> **`stize.app`** / **`api.stize.app`**. The legacy prod domains
+> `stigla.theoutlines.xyz` (301 → `stize.app`, path preserved) and
+> `stigla-api.theoutlines.xyz` (still bound) keep working for already-shipped
+> clients. **Infra names stay `stigla-*`** — the Cloudflare Pages project
+> `stigla`, the workers `stigla-backend` / `stigla-backend-staging`, the D1
+> databases, the `*.stigla.pages.dev` preview host, and the
+> `stigla-api-staging.theoutlines.xyz` staging domain are **not** renamed
+> (renaming would drop preview stands and rebind bindings).
 
 ## Per-branch previews (private, one login for all)
 
@@ -31,8 +41,10 @@ the `staging` branch.
 **All `*.pages.dev` previews are password-gated** by `app/web/_worker.js` (a
 Pages advanced-mode worker). It only stores the **SHA-256** of the password —
 never the plaintext — and gates only preview hostnames, so **production
-(`stigla.theoutlines.xyz`) stays fully public**. The username + plaintext
+(`stize.app`, legacy `stigla.theoutlines.xyz`) stays fully public**. The username + plaintext
 password live in the team password manager (Basic Auth prompt, auto-filled).
+> Production is `stize.app` (legacy `stigla.theoutlines.xyz` still resolves and
+> 301-redirects); neither is a `*.pages.dev` host, so neither is ever gated.
 
 To rotate the password: pick a new one, put its SHA-256 in
 `PREVIEW_PASS_SHA256` in `app/web/_worker.js`, and redeploy.
