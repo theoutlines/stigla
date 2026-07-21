@@ -239,23 +239,23 @@ that can't be collected retroactively, we start accumulating before we need it.
   provider's re-emitted previous board reported 263 s of fake staleness; fixed.
   Backgrounded tabs also pause polling.)
 
-- ✅ **Analytics insert hardening** (`fix/analytics-sql-variables`, влито в `main`
-  2026-07-16) — размер чанка вставки в analytics-D1 выводится из числа колонок под
-  документированный лимит D1 (100 bind-параметров), одной утилитой для всех путей
-  (наблюдения + агрегаты). Проверка прода: **тихой потери данных не было**
-  (binding-лимит выше REST-лимита, чанк 40 фактически держал). Отчёт:
-  `docs/reports/2026-07-15-analytics-sql-variables.md`.
+- ✅ **Analytics insert hardening** (`fix/analytics-sql-variables`, merged to `main`
+  2026-07-16) — the analytics-D1 insert chunk size is derived from the column count
+  to stay under D1's documented limit (100 bind parameters), via one helper for all
+  paths (observations + aggregates). Prod check: **there was no silent data loss**
+  (the binding limit is above the REST limit, so the chunk of 40 actually held).
+  Report: `docs/reports/2026-07-15-analytics-sql-variables.md`.
 
-- ✅ **Product analytics contour** (`feature/product-analytics`) — собственный
-  контур продуктовых событий: клиентский `EventLogger` (очередь + батч-flush +
-  эфемерная in-memory session, без user-id/IP/координат) шлёт батчи на
-  `POST /api/v1/events`, воркер пишет в новую таблицу `product_events`
-  (analytics-D1) через `chunkedInsert` в `waitUntil` — ноль влияния на горячие
-  пути. 8 событий v1 (вкл. `app_open.locale_class` для когорт местные/туристы),
-  свойства только перечислениями (unknown события/свойства отбрасываются на
-  входе). Гейт `product_analytics` (OFF прод / ON staging) закрывает **оба** конца:
-  при OFF клиент шлёт ноль запросов. README-абзац о приватности добавлен. Прод —
-  отдельным решением после проверки объёмов. Отчёт:
+- ✅ **Product analytics contour** (`feature/product-analytics`) — our own contour
+  for product events: a client `EventLogger` (queue + batch-flush + ephemeral
+  in-memory session, no user-id/IP/coordinates) posts batches to
+  `POST /api/v1/events`, and the worker writes them to a new `product_events` table
+  (analytics-D1) via `chunkedInsert` in `waitUntil` — zero impact on the hot paths.
+  8 v1 events (incl. `app_open.locale_class` for local/tourist cohorts), properties
+  as enums only (unknown events/properties are dropped at the door). The
+  `product_analytics` gate (OFF prod / ON staging) closes **both** ends: with it OFF
+  the client sends zero requests. A privacy paragraph was added to the README. Prod
+  is a separate decision after checking volumes. Report:
   `docs/reports/2026-07-18-product-analytics.md`.
 
 - 🚧 **Line analytics screens** (heatmap / sparkline / scatter / stat tiles) —
@@ -328,90 +328,92 @@ that can't be collected retroactively, we start accumulating before we need it.
   (~4–8 weeks). Measurement showed the real residue is tiny (most "unseen" lines
   are night lines that simply don't run at night). A month+ of data makes
   night/rare lines distinguishable from retired ones; build the classifier then.
-- 🎯 **Подача на голодном фиде источника (приоритет: ПОСЛЕ product-analytics).**
-  Замер 2026-07-18 (fixAge-инструментация + прод-vs-staging тождество): upstream
-  штатно проваливается в **минутные паузы обновления GPS**. Поймано **три окна за
-  два дня**: 07-17 веч 11/11 бортов fixAge>45с; 07-18 день база **20-26%**;
-  07-18 веч 11/12. При этом прод-фид по `as_of` свеж — **HOLD ≈0% на проде**
-  (день И вечер, 5-мин сэмпл): голод виден не как HOLD, а как **re-stamp**
-  (upstream двигает `as_of`, не GPS) — ~20-21% бортов предсказывают по
-  замороженному фиксу, p90 заморозки ≈**91с**. Из frozen-фиксов **~26-33% —
-  легитимные терминалы/стоянки** (реальный стоп, не вина фида); остальное —
-  недоподача источника.
-  - Феномен рендерится по-разному по тёплости кэша: на проде (тёплый `as_of`) —
-    **re-stamp-прыжки** (маркер прыгает, когда свежий фикс наконец приходит); на
-    холодном staging-стенде тот же голод — **хоровой HOLD** (все борта встают
-    синхронно). Тождество фида доказано: 51/52 общих `garage_no` — GPS идентичны
-    (прод и staging — один фид, разные SWR-кэши). См. memory
+- 🎯 **Rendering on a starved source feed (priority: AFTER product-analytics).**
+  Measured 2026-07-18 (fixAge instrumentation + prod-vs-staging identity): the
+  upstream routinely falls into **minute-long GPS-update pauses**. Caught **three
+  windows over two days**: 07-17 evening 11/11 vehicles fixAge>45s; 07-18 daytime
+  baseline **20-26%**; 07-18 evening 11/12. Yet the prod feed is fresh by `as_of` —
+  **HOLD ≈0% on prod** (day AND evening, 5-min sample): the starvation shows up not
+  as HOLD but as a **re-stamp** (the upstream advances `as_of`, not the GPS) —
+  ~20-21% of vehicles are predicted from a frozen fix, freeze p90 ≈**91s**. Of the
+  frozen fixes, **~26-33% are legitimate terminals/layovers** (a real stop, not the
+  feed's fault); the rest is source under-supply.
+  - The phenomenon renders differently by cache warmth: on prod (warm `as_of`) —
+    **re-stamp jumps** (the marker jumps when a fresh fix finally arrives); on a
+    cold staging stand the same starvation is a **chorus HOLD** (all vehicles stall
+    in sync). Feed identity proven: 51/52 shared `garage_no` have identical GPS
+    (prod and staging are one feed, different SWR caches). See memory
     `staging-stand-cold-cache-hold`.
-  - Два кандидата на мягкую деградацию (эластичная подача): (1) вместо
-    re-stamp-прыжка — замедлять/помечать неуверенность; (2) при массовом HOLD —
-    общий индикатор карты «данные задерживаются» вместо N бледных меток.
-  - Связанный **spiderfy-эпизод** (развод стоящих на хоровом HOLD снапал
-    мгновенно) уже пофикшен ease'ом (`8404af9`) — но подсветил, что голодный фид
-    рождает и визуальные артефакты.
-  - Для будущего **API-outreach**: «ваш фид штатно проваливается в минутные
-    (p90≈91с) паузы обновления GPS». Приоритет — после product-analytics (нужны
-    цифры частоты окон из аналитики, чтобы решать масштаб деградации).
+  - Two candidates for a soft degradation (elastic rendering): (1) instead of a
+    re-stamp jump — slow down / flag the uncertainty; (2) on a mass HOLD — a single
+    map "data is delayed" indicator instead of N pale markers.
+  - The related **spiderfy episode** (fanning out stationary vehicles on a chorus
+    HOLD snapped instantly) is already fixed with an ease (`8404af9`) — but it
+    highlighted that a starved feed also breeds visual artifacts.
+  - For a future **API outreach**: "your feed routinely falls into minute-long
+    (p90≈91s) GPS-update pauses." Priority — after product-analytics (we need the
+    window-frequency numbers from analytics to decide the scale of the
+    degradation).
 
 ### Known cosmetics (not blockers)
-- 🧊 **Полупрозрачный «призрак»-метка рядом со стоящим бортом (follow).** Условия
-  наблюдения (владелец, R5): on-demand, follow за **7L P80236** из контекста
-  остановки **20094**, борт на паузе — рядом появляется полупрозрачная метка того
-  же вида. Редкий, полупрозрачный. Кодовый поиск (R5) исключил: дубль-трек
-  (в on-demand garageNo уникален), твин-из-аквариума (аквариум off), двойной путь
-  рендера (векторный symbol-слой — единственный на главной карте; `VehicleMarker`
-  живёт только в `live_vehicles_map`), несглаженный stale (source
-  перезаписывается целиком). На главной карте пайплайн даёт один трек → одну фичу.
-  Остаётся редкий рендер-артефакт (кандидаты: остаточный spiderfy-offset при
-  переходе dwell↔move; grace-fade у самого борта на кадре ре-анкора). Нужна живая
-  репродукция с инспекцией слоя. Не блокирует merge ветки stop-dwell.
+- 🧊 **Semi-transparent "ghost" marker next to a stationary vehicle (follow).**
+  Observation conditions (owner, R5): on-demand, following **7L P80236** from stop
+  **20094**'s context, the vehicle paused — a semi-transparent marker of the same
+  kind appears beside it. Rare, semi-transparent. A code audit (R5) ruled out:
+  double-track (in on-demand garageNo is unique), an aquarium twin (aquarium off),
+  a double render path (the vector symbol layer is the only one on the main map;
+  `VehicleMarker` lives only in `live_vehicles_map`), un-smoothed stale (the source
+  is overwritten wholesale). On the main map the pipeline yields one track → one
+  feature. What remains is a rare render artifact (candidates: a residual spiderfy
+  offset on the dwell↔move transition; a grace-fade at the vehicle itself on a
+  re-anchor frame). Needs a live repro with layer inspection. Does not block the
+  stop-dwell branch merge.
 
 ### Plumbing / reliability
-- ⏭️ **GTFS shape не покрывает центральный участок линий 26/27/44 (и, вероятно,
-  др.) — ломает отрисовку трека, не только паузы.** Замер на живых бортах
-  (R5, 2026-07-18): сырые `all_stations` — настоящие GTFS-стопы (`id∈GTFS`,
-  координаты 0 м), но полилиния направления идёт мимо блока реальных стопов на
-  **77–721 м** (line 26: 7 из 23 стопов off-shape; line 27: 4 из 26). Проекция
-  такого стопа на полилинию садит и метку, и её паузу за сотни метров, на
-  соседнюю улицу (пользователь видит «паузу у встречного пина / между
-  остановками»). У линий 79/31/29/EKO2 shape в порядке — баг на подмножестве.
-  **Городской охват неизвестен:** честный замер требует сверки shape с
-  ФАКТИЧЕСКИМИ станциями рейсов (живые борта по каждому направлению) — быстрый
-  замер по self-consistent `stops` эндпоинта тавтологичен (0 м) и не годится;
-  входит в задачу фикса геометрии.
-  Направление (`resolveDirectionRouteId`) при этом ВЕРНОЕ (destination-терминал
-  совпадает) — дело не в резолве, а в геометрии shape (вариант маршрута / иная
-  прокладка в GTFS). Фикс: пересборка/выбор shape, совпадающего с фактическим
-  маршрутом; до него — на этих линиях паузы гейтятся близостью к реальному стопу
-  (см. ветку stop-dwell), поэтому пауз меньше, и это честно.
-  **Подслучай — один shape на маршрут без направлений.** Часть маршрутов в GTFS
-  имеет единственную полилинию (нет per-direction вариантов `-0`/`-1`), поэтому
-  выбирать «то же направление, что у борта» (фикс follow из ветки stop-dwell)
-  не из чего — обе стороны проецируются на одну линию, и подсветка/паузы садятся
-  не на ту сторону. Для таких маршрутов рисовать трек **по факту движения** борта
-  (последовательность его GPS-фиксов / `all_stations`), а не по фиксированной
-  полилинии направления. Часть общей задачи фикса геометрии.
-  **~8% линий фида вообще без shape (пригородные / АДА-перевозчики, не входят в
-  наши 474 GTFS-линии — напр. «Ada 4» с Batutova).** Для follow по такому борту
-  реализован **сырой режим** (ветка `feature/context-panel`, R4): без линии
-  маршрута, метка по чистому GPS (`VehicleTrackAnimator.dropTimed`,
-  переустанавливается после каждой ре-синхронизации стоп-контекста, чтобы борт не
-  «поехал сквозь дома»), панель показывает "Route unavailable for this line"
-  (l10n-триада). Деградация честная, ничего не врёт. При росте покрытия GTFS
-  (эти линии появятся в фиде с shape) — пересмотреть: сырой режим должен
-  автоматически уступить место обычному треку. Тот же кластер, что 26/27/44.
-- ⏭️ **Единый шлюз к источнику (egress discipline, полный слой)** — свести весь
-  upstream-трафик всех окружений (прод + все изолированные staging-версии) в один
-  код с **одним глобальным рейт-лимитом**, single-flight и коротким общим кешем,
-  чтобы N стендов стоили источнику как ~1 поллер (сейчас каждый изолят поллит
-  независимо, 30с-кап держится только внутри изолята). Мотив: источник, похоже,
-  ведёт поведенческую TTL-классификацию — 2026-07-17 он на часы отдавал нашему
-  Cloudflare-egress HTML вместо JSON, потом сам отпустил; тише = меньше риск
-  повтора. Слои-предшественники: правило диагностики в CLAUDE.md (готово),
-  провайдерский потолок частоты (в ближайшей бэкенд-задаче). Полный план и
-  дисциплина трафика: `docs/reports/2026-07-17-upstream-egress-outage.md`.
-- ✅ **Scheduled map objects TypeError** (влито в `main` 2026-07-16) —
+- ⏭️ **The GTFS shape doesn't cover the central stretch of lines 26/27/44 (and
+  probably others) — it breaks track rendering, not just the pauses.** Measured on
+  live vehicles (R5, 2026-07-18): the raw `all_stations` are real GTFS stops
+  (`id∈GTFS`, 0 m coordinates), but the direction polyline runs past the block of
+  real stops by **77–721 m** (line 26: 7 of 23 stops off-shape; line 27: 4 of 26).
+  Projecting such a stop onto the polyline drops both the marker and its pause
+  hundreds of meters away, onto a neighbouring street (the user sees a "pause at an
+  oncoming pin / between stops"). Lines 79/31/29/EKO2 have a fine shape — the bug
+  is on a subset. **City-wide extent unknown:** an honest measurement requires
+  checking the shape against the ACTUAL trip stations (live vehicles per direction)
+  — a quick measurement against the self-consistent `stops` endpoint is
+  tautological (0 m) and won't do; it's part of the geometry-fix task.
+  The direction (`resolveDirectionRouteId`) is CORRECT here (the destination
+  terminal matches) — it's not the resolve, it's the shape geometry (a route
+  variant / a different routing in GTFS). Fix: rebuild/pick a shape that matches the
+  actual route; until then, on these lines pauses are gated by proximity to a real
+  stop (see the stop-dwell branch), so there are fewer pauses, and that's honest.
+  **Sub-case — one shape per route with no directions.** Some GTFS routes have a
+  single polyline (no per-direction `-0`/`-1` variants), so there's nothing to pick
+  "the same direction as the vehicle" from (the follow fix from the stop-dwell
+  branch) — both sides project onto one line, and the highlight/pauses land on the
+  wrong side. For such routes, draw the track **by the vehicle's actual movement**
+  (the sequence of its GPS fixes / `all_stations`), not by a fixed direction
+  polyline. Part of the general geometry-fix task.
+  **~8% of feed lines have no shape at all (suburban / ADA operators, not in our
+  474 GTFS lines — e.g. "Ada 4" at Batutova).** For following such a vehicle a
+  **raw mode** is implemented (branch `feature/context-panel`, R4): no route line,
+  the marker on pure GPS (`VehicleTrackAnimator.dropTimed`, re-set after each
+  re-sync of the stop context so the vehicle doesn't "drive through buildings"),
+  the panel shows "Route unavailable for this line" (l10n triple). The degradation
+  is honest, it lies about nothing. As GTFS coverage grows (these lines appear in
+  the feed with a shape) — revisit: the raw mode should automatically give way to
+  the normal track. Same cluster as 26/27/44.
+- ⏭️ **A single gateway to the source (egress discipline, full layer)** — funnel
+  all upstream traffic from all environments (prod + every isolated staging
+  version) through one piece of code with **one global rate limit**, single-flight
+  and a short shared cache, so that N stands cost the source like ~1 poller (today
+  each isolate polls independently, and the 30s cap only holds inside an isolate).
+  Motive: the source appears to run behavioural TTL classification — on 2026-07-17
+  it served our Cloudflare egress HTML instead of JSON for hours, then let go on its
+  own; quieter = less risk of a repeat. Predecessor layers: the diagnostic rule in
+  CLAUDE.md (done), a provider-level rate ceiling (in the next backend task). Full
+  plan and traffic discipline: `docs/reports/2026-07-17-upstream-egress-outage.md`.
+- ✅ **Scheduled map objects TypeError** (merged to `main` 2026-07-16) —
   `scheduledMapObjectsForRoute` threw on the edge input
   `now.minutes === last stop time`, and one bad route dropped the *whole*
   scheduled layer of a `/vehicles/nearby` response (silent). Root fix + per-route
@@ -448,15 +450,15 @@ that can't be collected retroactively, we start accumulating before we need it.
   to ride" on the line card.
 - 💡 **Punctuality vs the GTFS schedule** — needs trip matching; unblocks the
   reliability metrics above.
-- 💡 **Expected-конверсия (диагностика).** По аналитике (наблюдения с
-  2026-07-10) посчитать, какая доля placeholder-прогнозов (гараж `P1..P999`)
-  конвертируется в реальный live-борт, в разрезе диапазонов ETA (0–5 / 5–15 /
-  15+ мин) и времени суток (день/ночь). Цель: данными подтвердить или
-  опровергнуть доверие к статусу **Expected** при малых ETA; если конверсия при
-  ETA < N мин близка к нулю — обосновать правило скрытия. Кандидат на первый
-  кейс reliability-pillar (показ надёжности прогноза пользователю). Чисто
-  аналитическая задача, продукт не трогает. Контекст: вопрос владельца
-  2026-07-17 «7 минут Expected — выглядит так, будто уже не приедет».
+- 💡 **Expected conversion (diagnostics).** From analytics (observations since
+  2026-07-10), compute what fraction of placeholder predictions (garage `P1..P999`)
+  converts into a real live vehicle, broken down by ETA range (0–5 / 5–15 / 15+ min)
+  and time of day (day/night). Goal: use data to confirm or refute trust in the
+  **Expected** status at small ETAs; if the conversion at ETA < N min is near zero —
+  justify a hide rule. A candidate for the first reliability-pillar case (showing
+  prediction reliability to the user). A purely analytical task, doesn't touch the
+  product. Context: the owner's question 2026-07-17, "7 minutes Expected — it looks
+  like it's not coming anymore."
 - 💡 **Dropped-trips metric** — computable from current data.
 - 💡 **Coverage V2** — weight segments by time-of-day/day-of-week aggregates,
   with a "how it usually is at this hour" slider (after enough history).
