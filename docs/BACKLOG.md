@@ -73,6 +73,14 @@ that can't be collected retroactively, we start accumulating before we need it.
 
 ## In progress / behind a flag
 
+- 🚧 **Rebrand Stigla → Stiže / stize.app** — branch `feature/rename-stize`,
+  **NOT merged** (merges to `main` first, before JP-1). User-facing brand →
+  `Stiže`, ASCII identifiers + Flutter package → `stize`; infra names `stigla-*`
+  frozen (see `CLAUDE.md` → Naming). `stize.app` bound to Pages live;
+  `api.stize.app` declared in `wrangler.toml` (binds on prod deploy). Deferred to
+  prod-go: 301 old-domain + www→apex redirects, MapTiler `stize.app` origin.
+  GitHub repo rename at task end. Full report:
+  `docs/reports/2026-07-21-rename-stize.md`.
 - 🚧 **Tram-jam ("stalled segment") detection** — **MERGED to `main` + in prod
   2026-07-20**, split like analytics: **recording ON prod** (`jam_detection_collect`),
   **UI behind a flag OFF prod** (`jam_detection_show`). Detects when a whole tram
