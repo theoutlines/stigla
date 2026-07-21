@@ -125,6 +125,22 @@ that can't be collected retroactively, we start accumulating before we need it.
   follow-ups (separate tasks): route My Stops rows into the desktop panel-stop
   view; per-stop ETAs in the panel vehicle view.
 
+- 🚧 **UX batch** (`feature/ux-batch-0720`, merged to main + prod 2026-07-21) —
+  built on the context panel: desktop panel now **collapses** (Google-Maps
+  "islands": search + burger float as separate backdrops, the map reclaims the
+  space); all mobile bottom sheets **unified to full width** + shared
+  handle/detents, "About the vehicle" opens **in-place** with a back arrow, and
+  the map shifts up so the stop stays above the sheet; **global search
+  everywhere** (nearby matches first, then stops/lines; works without a location
+  fix). New **drawer "about & contact" footer**: in-app feedback form →
+  `POST /api/v1/feedback` (durable D1 `feedback` table + best-effort GitHub issue
+  to the private `stigla-feedback` repo), open-source licenses (AGPL-3.0), in-app
+  privacy policy (EN/RU/SR **draft — owner proofread pending**), donate behind
+  `config:donate_url`, dimmed version line. Panel/search/sheets shipped ON; the
+  **feedback form stays behind `feedback_form` (OFF prod)** until the owner
+  reviews the privacy text + enables it. Report
+  `docs/reports/2026-07-20-ux-batch.md`.
+
 - 🚧 **Transport on the map — a map toggle** (`feature/vehicle-mode-setting`,
   isolated preview pair, merge owner-gated) — on-demand becomes the **new
   default**, not an experiment. The single control is a **quick toggle on the map**
