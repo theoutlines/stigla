@@ -57,6 +57,16 @@ analytics. It has its own SWR cache but the same 1-request-per-30s cap to the
 upstream source, and it's only used by one person — so no extra source load in
 practice. The kill switch works per-environment (separate KV).
 
+> **Gotcha: `wrangler kv`/`d1` commands default to a LOCAL store — pass
+> `--remote` to touch real data.** Without `--remote`, `wrangler kv key
+> get/put` and `wrangler d1 execute` read and write an on-disk miniflare
+> store, not the deployed KV namespace or D1 database. The command still
+> reports success, and a follow-up `get` (also local) happily echoes the value
+> you just wrote — so a change can look applied while production/staging never
+> saw it, and a read can "confirm" a stale or empty value. Any command meant to
+> inspect or modify real environment data (reading a flag, applying a
+> migration, checking a table) **must** carry `--remote`.
+
 ## Feature flags per environment
 
 Flags live in each environment's own KV (same mechanism as the kill switch). When
