@@ -370,6 +370,14 @@ that can't be collected retroactively, we start accumulating before we need it.
   stop-dwell branch merge.
 
 ### Plumbing / reliability
+- ⏭️ **Суточная/историческая агрегация upstream req/hr (наблюдаемость бюджета).**
+  `upstream_events` (метр `upstream_budget`) имеет retention ~2ч (opportunistic
+  prune в sweep-тике), а `/admin/sweep/status` отдаёт только rolling-1h — как
+  только `analytics_sweep` включён (сделано 2026-07-23), суточную картину req/hr
+  из D1 уже не снять. Нужен лёгкий дневной rollup req/hr по часам (или подъём
+  retention) — чтобы выставлять/пересматривать бюджет C по реальному пику без
+  ручного окна «пока sweep был выключен». Не блокер; подробности —
+  `docs/reports/2026-07-23-sweep-enable.md` §7.
 - ⏭️ **The GTFS shape doesn't cover the central stretch of lines 26/27/44 (and
   probably others) — it breaks track rendering, not just the pauses.** Measured on
   live vehicles (R5, 2026-07-18): the raw `all_stations` are real GTFS stops
